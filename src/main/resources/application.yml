@@ -1,0 +1,40 @@
+server:
+  port: 8080
+
+spring:
+  neo4j:
+    uri: bolt://localhost:7687
+    authentication:
+      username: neo4j
+      password: password
+
+springdoc:
+  api-docs:
+    enabled: true
+    path: /v3/api-docs
+  swagger-ui:
+    enabled: true
+    path: /swagger-ui.html
+
+
+logging:
+  level:
+    com.tfg.cryptoosint: INFO
+  file:
+    name: logs/crypto-osint-tracker.log
+
+http:
+  logging:
+    file:
+      name: logs/http-traffic.log
+    max-body-length: 10000
+
+#datasource:
+#  url: jdbc:postgresql://localhost:5432/crypto
+#  username: postgres
+#  password: postgres
+#
+#jpa:
+#  hibernate:
+#    ddl-auto: update
+#  show-sql: true

@@ -1,0 +1,213 @@
+<!doctype html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Crypto OSINT - Visualizador D3</title>
+    <style>
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background: #0f172a;
+            color: #e2e8f0;
+        }
+
+        .layout {
+            display: grid;
+            grid-template-columns: 320px 1fr;
+            height: 100vh;
+        }
+
+        .panel {
+            padding: 16px;
+            border-right: 1px solid #334155;
+            background: #111827;
+            overflow: auto;
+        }
+
+        .panel h1 {
+            margin-top: 0;
+            font-size: 18px;
+        }
+
+        .field {
+            margin-bottom: 12px;
+        }
+
+        .field label {
+            display: block;
+            margin-bottom: 4px;
+            font-size: 13px;
+            color: #94a3b8;
+        }
+
+        .field input {
+            width: 100%;
+            box-sizing: border-box;
+            padding: 8px;
+            border: 1px solid #475569;
+            border-radius: 6px;
+            background: #0b1220;
+            color: #e2e8f0;
+        }
+
+        .field input[type="checkbox"] {
+            width: auto;
+            transform: scale(1.1);
+            accent-color: #2563eb;
+        }
+
+        button {
+            width: 100%;
+            padding: 10px;
+            border: 0;
+            border-radius: 6px;
+            background: #2563eb;
+            color: white;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background: #1d4ed8;
+        }
+
+        .btn-secondary {
+            margin-top: 8px;
+            background: #334155;
+        }
+
+        .btn-secondary:hover {
+            background: #1f2937;
+        }
+
+        .meta {
+            margin-top: 14px;
+            font-size: 12px;
+            color: #94a3b8;
+            line-height: 1.4;
+        }
+
+        .status {
+            margin-top: 10px;
+            min-height: 36px;
+            font-size: 12px;
+            color: #fcd34d;
+        }
+
+        #graph {
+            width: 100%;
+            height: 100vh;
+            background: radial-gradient(circle at center, #0b1220 0%, #020617 100%);
+        }
+
+        .legend {
+            margin-top: 14px;
+            font-size: 12px;
+            color: #cbd5e1;
+        }
+
+        .legend div {
+            margin-bottom: 6px;
+        }
+
+        .dot {
+            display: inline-block;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            margin-right: 6px;
+        }
+
+        .node-details {
+            margin-top: 14px;
+            padding: 10px;
+            border: 1px solid #334155;
+            border-radius: 6px;
+            background: #0b1220;
+            font-size: 12px;
+            line-height: 1.45;
+            color: #cbd5e1;
+            word-break: break-all;
+        }
+
+        .node-details h2 {
+            margin: 0 0 8px 0;
+            font-size: 13px;
+            color: #e2e8f0;
+        }
+
+        .node-details .muted {
+            color: #94a3b8;
+        }
+    </style>
+</head>
+<body>
+<div class="layout">
+    <aside class="panel">
+        <h1>Visualizador D3</h1>
+
+        <div class="field">
+            <label for="wallet">Wallet inicial</label>
+            <input id="wallet" type="text" value="1eY8wawUfk5yiz83rFsmNJV9jognqoUq7">
+        </div>
+
+        <div class="field">
+            <label for="depth">Depth</label>
+            <input id="depth" type="number" min="1" max="5" value="2">
+        </div>
+
+        <div class="field">
+            <label for="minAmount">Filtro minimo de arista (satoshis)</label>
+            <input id="minAmount" type="number" min="0" value="0">
+        </div>
+
+        <div class="field">
+            <label for="maxEdges">Maximo de aristas a dibujar</label>
+            <input id="maxEdges" type="number" min="10" value="250">
+        </div>
+
+        <div class="field">
+            <label for="topNEdges">Aplicar Top N por importe</label>
+            <input id="topNEdges" type="checkbox" checked>
+        </div>
+
+        <div class="field">
+            <label for="hideZeroBalance">Ocultar nodos sin saldo</label>
+            <input id="hideZeroBalance" type="checkbox">
+        </div>
+
+        <button id="loadBtn" type="button">Cargar grafo</button>
+        <button id="exportJsonBtn" type="button" class="btn-secondary">Exportar JSON</button>
+        <button id="exportCsvBtn" type="button" class="btn-secondary">Exportar CSV</button>
+        <button id="exportPngBtn" type="button" class="btn-secondary">Exportar PNG</button>
+
+        <div id="status" class="status"></div>
+
+        <div id="meta" class="meta">
+            Listo para cargar.
+        </div>
+
+        <div class="legend">
+            <div><span class="dot" style="background:#f59e0b"></span>Wallet inicial</div>
+            <div><span class="dot" style="background:#22c55e"></span>Balance positivo</div>
+            <div><span class="dot" style="background:#ef4444"></span>Balance negativo</div>
+            <div><span class="dot" style="background:#94a3b8"></span>Balance cero</div>
+        </div>
+
+        <div id="nodeDetails" class="node-details">
+            <h2>Detalle de nodo</h2>
+            <div class="muted">Haz clic en un nodo o arista para ver detalle.</div>
+        </div>
+    </aside>
+
+    <main>
+        <svg id="graph"></svg>
+    </main>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/d3@7"></script>
+<script src="js/trace.js"></script>
+</body>
+</html>
+
