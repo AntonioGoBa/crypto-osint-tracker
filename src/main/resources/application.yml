@@ -34,9 +34,9 @@ app:
     description: API para trazado de wallets y análisis OSINT sobre transacciones Bitcoin
     version: 1.0.0
     contact:
-      name: Tu nombre
-      email: tuemail@ejemplo.com
-      url: https://tu-web-o-github.com
+      name: TFG - Antonio Gómez Barranco
+      email: gomez.barranco.antonio@gmail.com
+      url: https://github.com/AntonioGoBa/crypto-osint-tracker
     license:
       name: Apache 2.0
       url: https://www.apache.org/licenses/LICENSE-2.0.html
