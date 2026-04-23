@@ -3,6 +3,7 @@ package com.tfg.cryptoosint.util;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.tfg.cryptoosint.dto.TransactionDTO;
+import com.tfg.cryptoosint.dto.WalletBlockTxDTO;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -43,6 +44,56 @@ public class JsonParserUtil {
         }
 
         return false;
+    }
+
+    public static boolean isValidBitcoinAddress(String wallet) {
+
+        if (wallet == null || wallet.isBlank()) {
+            return false;
+        }
+
+        return BITCOIN_ADDRESS_PATTERN.matcher(wallet.trim()).matches();
+    }
+
+    public static List<WalletBlockTxDTO> extractWalletBlockAppearances(String json, String wallet) {
+
+        if (json == null || json.isBlank() || wallet == null || wallet.isBlank()) {
+            return Collections.emptyList();
+        }
+
+        List<WalletBlockTxDTO> results = new ArrayList<>();
+
+        try {
+            JsonNode root = OBJECT_MAPPER.readTree(json);
+            if (!root.isArray()) {
+                return Collections.emptyList();
+            }
+
+            for (JsonNode tx : root) {
+                int occurrences = countWalletOccurrences(tx, wallet);
+                if (occurrences == 0) {
+                    continue;
+                }
+
+                String txid = tx.path("txid").asText("").trim();
+                JsonNode status = tx.path("status");
+                boolean confirmed = status.path("confirmed").asBoolean(false);
+                Integer blockHeight = status.path("block_height").isMissingNode()
+                        || status.path("block_height").isNull()
+                        ? null
+                        : status.path("block_height").asInt();
+                Long blockTime = status.path("block_time").isMissingNode()
+                        || status.path("block_time").isNull()
+                        ? null
+                        : status.path("block_time").asLong();
+
+                results.add(new WalletBlockTxDTO(txid, confirmed, blockHeight, blockTime, occurrences));
+            }
+        } catch (Exception ignored) {
+            return Collections.emptyList();
+        }
+
+        return results;
     }
 
     public static long extractWalletAmount(String json, String wallet) {
@@ -209,6 +260,33 @@ public class JsonParserUtil {
         }
 
         return false;
+    }
+
+    private static int countWalletOccurrences(JsonNode tx, String wallet) {
+
+        int count = 0;
+
+        JsonNode vin = tx.path("vin");
+        if (vin.isArray()) {
+            for (JsonNode input : vin) {
+                String inputAddress = input.path("prevout").path("scriptpubkey_address").asText("").trim();
+                if (wallet.equals(inputAddress)) {
+                    count++;
+                }
+            }
+        }
+
+        JsonNode vout = tx.path("vout");
+        if (vout.isArray()) {
+            for (JsonNode output : vout) {
+                String outputAddress = output.path("scriptpubkey_address").asText("").trim();
+                if (wallet.equals(outputAddress)) {
+                    count++;
+                }
+            }
+        }
+
+        return count;
     }
 
     private static void collectAddresses(JsonNode node,

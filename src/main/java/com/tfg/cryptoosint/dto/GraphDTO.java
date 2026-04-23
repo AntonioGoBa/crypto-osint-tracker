@@ -1,13 +1,25 @@
 package com.tfg.cryptoosint.dto;
 
+import io.swagger.v3.oas.annotations.media.Schema;
+
 import java.util.List;
 
+@Schema(description = "Resultado del trazado de una wallet en forma de grafo")
 public class GraphDTO {
 
+    @Schema(description = "Wallet inicial analizada", example = "bc1qxy2kgdygjrsqtzq2n0yrf2493p83kkfjhx0wlh")
     private String initialWallet;
+
+    @Schema(description = "Balance o importe asociado en satoshis", example = "1250000")
     private long initialAmountSatoshis;
+
+    @Schema(description = "Balance o importe asociado en BTC", example = "0.01250000")
     private String initialAmountBtc;
+
+    @Schema(description = "Nodos del grafo")
     private List<WalletNodeDTO> nodes;
+
+    @Schema(description = "Aristas del grafo")
     private List<TransactionDTO> edges;
 
     public GraphDTO() {

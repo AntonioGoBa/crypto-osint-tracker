@@ -28,13 +28,15 @@ http:
     file:
       name: logs/http-traffic.log
     max-body-length: 10000
-
-#datasource:
-#  url: jdbc:postgresql://localhost:5432/crypto
-#  username: postgres
-#  password: postgres
-#
-#jpa:
-#  hibernate:
-#    ddl-auto: update
-#  show-sql: true
+app:
+  openapi:
+    title: Crypto OSINT Tracker API
+    description: API para trazado de wallets y análisis OSINT sobre transacciones Bitcoin
+    version: 1.0.0
+    contact:
+      name: Tu nombre
+      email: tuemail@ejemplo.com
+      url: https://tu-web-o-github.com
+    license:
+      name: Apache 2.0
+      url: https://www.apache.org/licenses/LICENSE-2.0.html

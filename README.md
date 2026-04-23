@@ -29,7 +29,16 @@ En el log HTTP se registran request/response completos con tiempo de ejecucion. 
 
 ```powershell
 Invoke-RestMethod "http://localhost:8080/api/trace/1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa?depth=2"
+
+Invoke-RestMethod "http://localhost:8080/api/trace/1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa/blocks"
 ```
+
+El endpoint `/api/trace/{wallet}/blocks` devuelve:
+
+- `firstSeenBlock`: primer bloque confirmado donde aparece la wallet
+- `lastSeenBlock`: ultimo bloque confirmado donde aparece la wallet
+- `confirmedTxCount` y `unconfirmedTxCount`
+- `transactions`: detalle por transaccion (`txid`, bloque, timestamp y ocurrencias de la wallet)
 
 ## Visualizacion con D3.js
 

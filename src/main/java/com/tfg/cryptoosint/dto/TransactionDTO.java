@@ -1,15 +1,29 @@
 package com.tfg.cryptoosint.dto;
 
+import io.swagger.v3.oas.annotations.media.Schema;
+
 import java.util.ArrayList;
 import java.util.List;
 
+@Schema(description = "Arista del grafo que representa transferencias agregadas entre dos wallets")
 public class TransactionDTO {
 
+    @Schema(description = "Wallet origen", example = "bc1qsourceexample0000000000000000000000000")
     private String from;
+
+    @Schema(description = "Wallet destino", example = "bc1qtargetexample0000000000000000000000000")
     private String to;
+
+    @Schema(description = "Importe agregado en satoshis", example = "250000")
     private long amount;
+
+    @Schema(description = "Importe agregado en BTC", example = "0.00250000")
     private String amountBtc;
+
+    @Schema(description = "Número de transacciones agrupadas entre origen y destino", example = "3")
     private int txCount;
+
+    @Schema(description = "Listado de txids agregados para esta relación")
     private List<String> txids;
 
     public TransactionDTO() {
