@@ -21,16 +21,9 @@ public class TransactionCrawler {
     private static final Logger logger = LoggerFactory.getLogger(TransactionCrawler.class);
 
     private final BlockClient api;
-//    private final AddressRepository addressRepo;
-//    private final TransactionRepository txRepo;
 
-    public TransactionCrawler(BlockClient api //,
-//                              AddressRepository addressRepo,
-//                              TransactionRepository txRepo
-    ) {
+    public TransactionCrawler(BlockClient api) {
         this.api = api;
-//        this.addressRepo = addressRepo;
-//        this.txRepo = txRepo;
     }
 
     public GraphDTO traceWallet(String wallet, int depth) {
@@ -156,8 +149,6 @@ public class TransactionCrawler {
                 existing.setTxids(new ArrayList<>(mergedTxids));
                 existing.setTxCount(mergedTxids.size());
             }
-
-            //saveTransaction(transfer);
         }
 
         return new GraphDTO(
@@ -167,21 +158,5 @@ public class TransactionCrawler {
                 nodes,
                 new ArrayList<>(aggregatedTransfers.values())
         );
-    }
-
-    private void saveTransaction(TransactionDTO transfer) {
-//        AddressEntity from = addressRepo.findByAddress(transfer.getFrom())
-//                .orElseGet(() -> addressRepo.save(new AddressEntity(transfer.getFrom())));
-//
-//        AddressEntity to = addressRepo.findByAddress(transfer.getTo())
-//                .orElseGet(() -> addressRepo.save(new AddressEntity(transfer.getTo())));
-//
-//        TransactionEntity tx = new TransactionEntity(
-//                from.getAddress(),
-//                to.getAddress(),
-//                transfer.getAmount()
-//        );
-//
-//        txRepo.save(tx);
     }
 }

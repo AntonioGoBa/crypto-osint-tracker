@@ -55,6 +55,70 @@
         return edgeEndpoint(source) + "->" + edgeEndpoint(target);
     }
 
+    const EDGE_DIRECTION_LABELS = {
+        outgoing: "Salida desde la wallet inicial",
+        incoming: "Entrada hacia la wallet inicial",
+        neutral: "Relación entre wallets"
+    };
+
+    function edgeDirection(link, initialWallet) {
+        const from = edgeEndpoint(link.source);
+        const to = edgeEndpoint(link.target);
+        const initial = typeof initialWallet === "string" ? initialWallet.trim() : "";
+
+        if (initial && from === initial) {
+            return "outgoing";
+        }
+        if (initial && to === initial) {
+            return "incoming";
+        }
+        return "neutral";
+    }
+
+    function edgeDirectionLabel(direction) {
+        return EDGE_DIRECTION_LABELS[direction] || EDGE_DIRECTION_LABELS.neutral;
+    }
+
+    const EDGE_DIRECTION_COLORS = {
+        outgoing: "#22c55e",
+        incoming: "#ef4444",
+        neutral: "#60a5fa",
+        selected: "#facc15"
+    };
+
+    function edgeAppearance(link, initialWallet, selectedEdgeKey) {
+        const selected = edgeKey(link.source, link.target) === selectedEdgeKey;
+        const direction = edgeDirection(link, initialWallet);
+
+        return {
+            direction: direction,
+            color: selected ? EDGE_DIRECTION_COLORS.selected : (EDGE_DIRECTION_COLORS[direction] || EDGE_DIRECTION_COLORS.neutral),
+            opacity: selected ? 1 : 0.95,
+            markerId: selected ? "arrow-" + direction + "-selected" : "arrow-" + direction
+        };
+    }
+
+    function linkEndpoints(link, nodeRadius) {
+        const sourceX = link.source.x;
+        const sourceY = link.source.y;
+        const targetX = link.target.x;
+        const targetY = link.target.y;
+
+        const dx = targetX - sourceX;
+        const dy = targetY - sourceY;
+        const distance = Math.sqrt(dx * dx + dy * dy) || 1;
+
+        const sourcePadding = nodeRadius(Math.abs(link.source.amountSatoshis || 0)) + 4;
+        const targetPadding = nodeRadius(Math.abs(link.target.amountSatoshis || 0)) + 10;
+
+        return {
+            x1: sourceX + (dx * sourcePadding) / distance,
+            y1: sourceY + (dy * sourcePadding) / distance,
+            x2: targetX - (dx * targetPadding) / distance,
+            y2: targetY - (dy * targetPadding) / distance
+        };
+    }
+
     function normalizeTxids(value) {
         if (!Array.isArray(value)) {
             return [];
@@ -106,6 +170,7 @@
 
         const from = edgeEndpoint(link.source);
         const to = edgeEndpoint(link.target);
+        const direction = edgeDirection(link, graph.initialWallet);
         const amount = Number(link.amount || 0);
         const amountBtc = link.amountBtc || satoshisToBtcString(amount);
         const txids = normalizeTxids(link.txids);
@@ -134,7 +199,9 @@
             "<h2>Detalle de arista</h2>" +
             "<div><strong>Origen:</strong> " + from + "</div>" +
             "<div><strong>Destino:</strong> " + to + "</div>" +
+            "<div><strong>Dirección:</strong> " + edgeDirectionLabel(direction) + "</div>" +
             "<div><strong>Importe:</strong> " + amount + " sats (" + amountBtc + " BTC)</div>" +
+            "<div><strong>Grosor:</strong> mayor importe agregado = línea más gruesa</div>" +
             "<div><strong>Tx count:</strong> " + txCount + "</div>" +
             "<div><strong>Peso relativo:</strong> " + percent + "% del total de aristas visibles</div>" +
             "<div style=\"margin-top:6px;\"><strong>Txids:</strong><br>" + txidsHtml + txidsMore + copyButtonHtml + "</div>";
@@ -273,12 +340,13 @@
         }
         lines.push("");
 
-        lines.push("section,from,to,amountSatoshis,amountBtc,txCount,txids");
+        lines.push("section,from,to,direction,amountSatoshis,amountBtc,txCount,txids");
         for (const e of graph.links) {
             lines.push([
                 "edge",
                 edgeEndpoint(e.source),
                 edgeEndpoint(e.target),
+                edgeDirection(e, graph.initialWallet),
                 e.amount,
                 e.amountBtc,
                 e.txCount || 0,
@@ -335,7 +403,8 @@
                 amount: Number(e.amount || 0),
                 amountBtc: satoshisToBtcString(Number(e.amount || 0)),
                 txCount: Number(e.txCount || normalizeTxids(e.txids).length || 0),
-                txids: normalizeTxids(e.txids)
+                txids: normalizeTxids(e.txids),
+                direction: edgeDirection({ source: e.source, target: e.target }, payload.initialWallet)
             }))
             .filter((e) => e.amount >= minAmount)
             .sort((a, b) => b.amount - a.amount);
@@ -380,7 +449,7 @@
             }
         }
 
-        return { nodes: resultNodes, links: rawEdges };
+        return { initialWallet: payload.initialWallet, nodes: resultNodes, links: rawEdges };
     }
 
     function colorForNode(n) {
@@ -412,6 +481,28 @@
 
         svg.call(zoom);
 
+        const defs = svg.append("defs");
+        defs.selectAll("marker")
+            .data([
+                { id: "arrow-outgoing", color: EDGE_DIRECTION_COLORS.outgoing },
+                { id: "arrow-incoming", color: EDGE_DIRECTION_COLORS.incoming },
+                { id: "arrow-neutral", color: EDGE_DIRECTION_COLORS.neutral },
+                { id: "arrow-outgoing-selected", color: EDGE_DIRECTION_COLORS.selected },
+                { id: "arrow-incoming-selected", color: EDGE_DIRECTION_COLORS.selected },
+                { id: "arrow-neutral-selected", color: EDGE_DIRECTION_COLORS.selected }
+            ])
+            .join("marker")
+            .attr("id", (d) => d.id)
+            .attr("viewBox", "0 0 10 10")
+            .attr("refX", 12)
+            .attr("refY", 5)
+            .attr("markerWidth", 9)
+            .attr("markerHeight", 9)
+            .attr("orient", "auto")
+            .append("path")
+            .attr("d", "M 0 0 L 10 5 L 0 10 z")
+            .attr("fill", (d) => d.color);
+
         const maxNodeAmount = d3.max(graph.nodes, (d) => Math.abs(d.amountSatoshis)) || 1;
         const maxEdgeAmount = d3.max(graph.links, (d) => d.amount) || 1;
 
@@ -430,12 +521,14 @@
             .force("collide", d3.forceCollide().radius((d) => nodeRadius(Math.abs(d.amountSatoshis)) + 3));
 
         const links = g.append("g")
-            .attr("stroke", "#64748b")
-            .attr("stroke-opacity", 0.55)
             .selectAll("line")
             .data(graph.links)
             .join("line")
             .attr("stroke-width", (d) => edgeWidth(d.amount))
+            .attr("stroke-linecap", "round")
+            .attr("stroke", (d) => edgeAppearance(d, graph.initialWallet, selectedEdgeKey).color)
+            .attr("stroke-opacity", (d) => edgeAppearance(d, graph.initialWallet, selectedEdgeKey).opacity)
+            .attr("marker-end", (d) => "url(#" + edgeAppearance(d, graph.initialWallet, selectedEdgeKey).markerId + ")")
             .attr("cursor", "pointer")
             .on("click", (event, d) => {
                 event.stopPropagation();
@@ -447,7 +540,7 @@
             });
 
         links.append("title")
-            .text((d) => edgeEndpoint(d.source)
+            .text((d) => edgeDirectionLabel(edgeDirection(d, graph.initialWallet)) + " | " + edgeEndpoint(d.source)
                 + " -> " + edgeEndpoint(d.target)
                 + " | " + d.amount + " sats (" + d.amountBtc + " BTC)"
                 + " | txCount=" + (d.txCount || 0));
@@ -478,8 +571,9 @@
 
         function updateLinkStyles() {
             links
-                .attr("stroke", (d) => edgeKey(d.source, d.target) === selectedEdgeKey ? "#facc15" : "#64748b")
-                .attr("stroke-opacity", (d) => edgeKey(d.source, d.target) === selectedEdgeKey ? 0.95 : 0.55);
+                .attr("stroke", (d) => edgeAppearance(d, graph.initialWallet, selectedEdgeKey).color)
+                .attr("stroke-opacity", (d) => edgeAppearance(d, graph.initialWallet, selectedEdgeKey).opacity)
+                .attr("marker-end", (d) => "url(#" + edgeAppearance(d, graph.initialWallet, selectedEdgeKey).markerId + ")");
         }
 
         svg.on("click", () => {
@@ -503,11 +597,10 @@
             .attr("pointer-events", "none");
 
         simulation.on("tick", () => {
-            links
-                .attr("x1", (d) => d.source.x)
-                .attr("y1", (d) => d.source.y)
-                .attr("x2", (d) => d.target.x)
-                .attr("y2", (d) => d.target.y);
+            links.attr("x1", (d) => linkEndpoints(d, nodeRadius).x1)
+                .attr("y1", (d) => linkEndpoints(d, nodeRadius).y1)
+                .attr("x2", (d) => linkEndpoints(d, nodeRadius).x2)
+                .attr("y2", (d) => linkEndpoints(d, nodeRadius).y2);
 
             nodes
                 .attr("cx", (d) => d.x)
@@ -640,6 +733,7 @@
             edges: lastVisualGraph.links.map((e) => ({
                 from: edgeEndpoint(e.source),
                 to: edgeEndpoint(e.target),
+                direction: edgeDirection(e, lastVisualGraph.initialWallet),
                 amount: e.amount,
                 amountBtc: e.amountBtc,
                 txCount: Number(e.txCount || normalizeTxids(e.txids).length || 0),
@@ -748,4 +842,5 @@
 
     loadGraph();
 })();
+
 

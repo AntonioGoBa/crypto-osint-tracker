@@ -111,6 +111,52 @@
             margin-bottom: 6px;
         }
 
+        .legend .legend-title {
+            margin-top: 10px;
+            margin-bottom: 8px;
+            font-weight: bold;
+            color: #e2e8f0;
+        }
+
+        .legend .legend-row {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .edge-swatch {
+            display: inline-block;
+            width: 28px;
+            height: 0;
+            border-top-style: solid;
+            border-top-width: 4px;
+            border-radius: 999px;
+        }
+
+        .edge-swatch.thin {
+            border-top-width: 2px;
+        }
+
+        .edge-swatch.thick {
+            border-top-width: 6px;
+        }
+
+        .legend-svg {
+            width: 92px;
+            height: 18px;
+            flex: 0 0 auto;
+        }
+
+        .legend-caption {
+            color: #e2e8f0;
+        }
+
+        .legend-note {
+            margin-top: 4px;
+            color: #94a3b8;
+            font-size: 11px;
+        }
+
         .dot {
             display: inline-block;
             width: 10px;
@@ -189,10 +235,38 @@
         </div>
 
         <div class="legend">
+            <div class="legend-title">Nodos</div>
             <div><span class="dot" style="background:#f59e0b"></span>Wallet inicial</div>
             <div><span class="dot" style="background:#22c55e"></span>Balance positivo</div>
             <div><span class="dot" style="background:#ef4444"></span>Balance negativo</div>
             <div><span class="dot" style="background:#94a3b8"></span>Balance cero</div>
+
+            <div class="legend-title">Aristas</div>
+            <div class="legend-row"><span class="edge-swatch" style="border-top-color:#38bdf8;"></span>Salida desde la wallet inicial</div>
+            <div class="legend-row"><span class="edge-swatch" style="border-top-color:#f97316;"></span>Entrada hacia la wallet inicial</div>
+            <div class="legend-row"><span class="edge-swatch" style="border-top-color:#64748b;"></span>Relación entre wallets</div>
+            <div class="legend-row"><span class="edge-swatch" style="border-top-color:#64748b;"></span>Color bajo = importe bajo</div>
+            <div class="legend-row"><span class="edge-swatch" style="border-top-color:#f59e0b;"></span>Color intenso = importe alto</div>
+            <div class="legend-row"><span class="edge-swatch thin" style="border-top-color:#94a3b8;"></span>Arista fina = importe bajo</div>
+            <div class="legend-row"><span class="edge-swatch thick" style="border-top-color:#94a3b8;"></span>Arista gruesa = importe alto</div>
+            <div class="muted" style="margin-top:8px;">Cuanto más gruesa es la arista, mayor es el importe transferido.</div>
+
+            <div class="legend-title">Ejemplo visual</div>
+            <div class="legend-row">
+                <svg class="legend-svg" viewBox="0 0 92 18" aria-label="Ejemplo de arista fina">
+                    <line x1="6" y1="9" x2="80" y2="9" stroke="#64748b" stroke-width="2" stroke-linecap="round"></line>
+                    <polygon points="80,4 90,9 80,14" fill="#94a3b8"></polygon>
+                </svg>
+                <span class="legend-caption">Fina: importe pequeño</span>
+            </div>
+            <div class="legend-row">
+                <svg class="legend-svg" viewBox="0 0 92 18" aria-label="Ejemplo de arista gruesa">
+                    <line x1="6" y1="9" x2="80" y2="9" stroke="#f59e0b" stroke-width="6" stroke-linecap="round"></line>
+                    <polygon points="80,4 90,9 80,14" fill="#94a3b8"></polygon>
+                </svg>
+                <span class="legend-caption">Gruesa: importe alto</span>
+            </div>
+            <div class="legend-note">La flecha marca la dirección del flujo y el grosor el importe transferido.</div>
         </div>
 
         <div id="nodeDetails" class="node-details">
@@ -207,7 +281,7 @@
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/d3@7"></script>
-<script src="js/trace.js"></script>
+<script src="js/trace.js?v=20260521-edges-fix"></script>
 </body>
 </html>
 
