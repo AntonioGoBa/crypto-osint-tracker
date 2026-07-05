@@ -63,35 +63,8 @@ public class JsonParserUtil {
 
         List<WalletBlockTxDTO> results = new ArrayList<>();
 
-        try {
-            JsonNode root = OBJECT_MAPPER.readTree(json);
-            if (!root.isArray()) {
-                return Collections.emptyList();
-            }
-
-            for (JsonNode tx : root) {
-                int occurrences = countWalletOccurrences(tx, wallet);
-                if (occurrences == 0) {
-                    continue;
-                }
-
-                String txid = tx.path("txid").asText("").trim();
-                JsonNode status = tx.path("status");
-                boolean confirmed = status.path("confirmed").asBoolean(false);
-                Integer blockHeight = status.path("block_height").isMissingNode()
-                        || status.path("block_height").isNull()
-                        ? null
-                        : status.path("block_height").asInt();
-                Long blockTime = status.path("block_time").isMissingNode()
-                        || status.path("block_time").isNull()
-                        ? null
-                        : status.path("block_time").asLong();
-
-                results.add(new WalletBlockTxDTO(txid, confirmed, blockHeight, blockTime, occurrences));
-            }
-        } catch (Exception ignored) {
-            return Collections.emptyList();
-        }
+        //REGION DE CODIGO OCULTADA A PETICION DEL DIRECTOR DEL TFG
+        //En el apartado "5.4. Módulo de procesamiento de datos" del documento podras encontrar el contenido de esta clase.
 
         return results;
     }
@@ -102,20 +75,9 @@ public class JsonParserUtil {
             return 0L;
         }
 
-        try {
-            JsonNode root = OBJECT_MAPPER.readTree(json);
+        //REGION DE CODIGO OCULTADA A PETICION DEL DIRECTOR DEL TFG
+        //En el apartado "5.4. Módulo de procesamiento de datos" del documento podras encontrar el contenido de esta clase.
 
-            long blockstreamStatsBalance = extractBlockstreamStatsBalance(root);
-            if (blockstreamStatsBalance != Long.MIN_VALUE) {
-                return blockstreamStatsBalance;
-            }
-
-            if (root.isArray()) {
-                return extractNetAmountFromBlockstreamTxs(root, wallet);
-            }
-        } catch (Exception ignored) {
-            return 0L;
-        }
 
         return 0L;
     }
@@ -126,66 +88,10 @@ public class JsonParserUtil {
             return Collections.emptyList();
         }
 
-        Map<String, Long> amountsByDestination = new LinkedHashMap<>();
-        Map<String, Set<String>> txidsByDestination = new LinkedHashMap<>();
-
-        try {
-            JsonNode root = OBJECT_MAPPER.readTree(json);
-            if (!root.isArray()) {
-                return Collections.emptyList();
-            }
-
-            for (JsonNode tx : root) {
-                if (!isOutgoingTx(tx, sourceWallet)) {
-                    continue;
-                }
-
-                String txid = tx.path("txid").asText("").trim();
-
-                JsonNode vout = tx.path("vout");
-                if (!vout.isArray()) {
-                    continue;
-                }
-
-                for (JsonNode output : vout) {
-                    String destination = output.path("scriptpubkey_address").asText("").trim();
-                    if (destination.isEmpty() || sourceWallet.equals(destination)) {
-                        continue;
-                    }
-
-                    long value = output.path("value").asLong(0L);
-                    if (value <= 0) {
-                        continue;
-                    }
-
-                    amountsByDestination.merge(destination, value, Long::sum);
-
-                    if (!txid.isEmpty()) {
-                        txidsByDestination
-                                .computeIfAbsent(destination, key -> new LinkedHashSet<>())
-                                .add(txid);
-                    }
-                }
-            }
-        } catch (Exception ignored) {
-            return Collections.emptyList();
-        }
+        //REGION DE CODIGO OCULTADA A PETICION DEL DIRECTOR DEL TFG
+        //En el apartado "5.4. Módulo de procesamiento de datos" del documento podras encontrar el contenido de esta clase.
 
         List<TransactionDTO> transfers = new ArrayList<>();
-        for (Map.Entry<String, Long> entry : amountsByDestination.entrySet()) {
-            List<String> txids = new ArrayList<>(
-                    txidsByDestination.getOrDefault(entry.getKey(), Collections.emptySet())
-            );
-
-            transfers.add(new TransactionDTO(
-                    sourceWallet,
-                    entry.getKey(),
-                    entry.getValue(),
-                    satoshisToBtc(entry.getValue()),
-                    txids.size(),
-                    txids
-            ));
-        }
 
         return transfers;
     }
@@ -199,65 +105,24 @@ public class JsonParserUtil {
 
     private static long extractBlockstreamStatsBalance(JsonNode root) {
 
-        JsonNode chainStats = root.path("chain_stats");
-        JsonNode mempoolStats = root.path("mempool_stats");
+        //REGION DE CODIGO OCULTADA A PETICION DEL DIRECTOR DEL TFG
+        //En el apartado "5.4. Módulo de procesamiento de datos" del documento podras encontrar el contenido de esta clase.
 
-        if (!chainStats.isObject() || !mempoolStats.isObject()) {
-            return Long.MIN_VALUE;
-        }
-
-        long chainFunded = chainStats.path("funded_txo_sum").asLong(0L);
-        long chainSpent = chainStats.path("spent_txo_sum").asLong(0L);
-        long mempoolFunded = mempoolStats.path("funded_txo_sum").asLong(0L);
-        long mempoolSpent = mempoolStats.path("spent_txo_sum").asLong(0L);
-
-        return (chainFunded - chainSpent) + (mempoolFunded - mempoolSpent);
+        return 0L;
     }
 
     private static long extractNetAmountFromBlockstreamTxs(JsonNode txs, String wallet) {
 
-        long net = 0L;
+        //REGION DE CODIGO OCULTADA A PETICION DEL DIRECTOR DEL TFG
+        //En el apartado "5.4. Módulo de procesamiento de datos" del documento podras encontrar el contenido de esta clase.
 
-        for (JsonNode tx : txs) {
-            JsonNode vin = tx.path("vin");
-            if (vin.isArray()) {
-                for (JsonNode input : vin) {
-                    JsonNode prevout = input.path("prevout");
-                    String inputAddress = prevout.path("scriptpubkey_address").asText("");
-                    if (wallet.equals(inputAddress)) {
-                        net -= prevout.path("value").asLong(0L);
-                    }
-                }
-            }
-
-            JsonNode vout = tx.path("vout");
-            if (vout.isArray()) {
-                for (JsonNode output : vout) {
-                    String outputAddress = output.path("scriptpubkey_address").asText("");
-                    if (wallet.equals(outputAddress)) {
-                        net += output.path("value").asLong(0L);
-                    }
-                }
-            }
-        }
-
-        return net;
+        return 0L;
     }
 
     private static boolean isOutgoingTx(JsonNode tx, String wallet) {
 
-        JsonNode vin = tx.path("vin");
-        if (!vin.isArray()) {
-            return false;
-        }
-
-        for (JsonNode input : vin) {
-            JsonNode prevout = input.path("prevout");
-            String inputAddress = prevout.path("scriptpubkey_address").asText("");
-            if (wallet.equals(inputAddress)) {
-                return true;
-            }
-        }
+        //REGION DE CODIGO OCULTADA A PETICION DEL DIRECTOR DEL TFG
+        //En el apartado "5.4. Módulo de procesamiento de datos" del documento podras encontrar el contenido de esta clase.
 
         return false;
     }
@@ -266,25 +131,8 @@ public class JsonParserUtil {
 
         int count = 0;
 
-        JsonNode vin = tx.path("vin");
-        if (vin.isArray()) {
-            for (JsonNode input : vin) {
-                String inputAddress = input.path("prevout").path("scriptpubkey_address").asText("").trim();
-                if (wallet.equals(inputAddress)) {
-                    count++;
-                }
-            }
-        }
-
-        JsonNode vout = tx.path("vout");
-        if (vout.isArray()) {
-            for (JsonNode output : vout) {
-                String outputAddress = output.path("scriptpubkey_address").asText("").trim();
-                if (wallet.equals(outputAddress)) {
-                    count++;
-                }
-            }
-        }
+        //REGION DE CODIGO OCULTADA A PETICION DEL DIRECTOR DEL TFG
+        //En el apartado "5.4. Módulo de procesamiento de datos" del documento podras encontrar el contenido de esta clase.
 
         return count;
     }

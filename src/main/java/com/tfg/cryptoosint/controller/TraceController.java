@@ -141,7 +141,7 @@ public class TraceController {
             @Parameter(
                     description = "Dirección Bitcoin a analizar",
                     required = true,
-                    example = "bc1qxy2kgdygjrsqtzq2n0yrf2493p83kkfjhx0wlh"
+                    example = "1eY8wawUfk5yiz83rFsmNJV9jognqoUq7"
             )
             @PathVariable String wallet,
 

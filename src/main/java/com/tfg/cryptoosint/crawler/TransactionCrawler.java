@@ -3,10 +3,6 @@ package com.tfg.cryptoosint.crawler;
 import com.tfg.cryptoosint.dto.GraphDTO;
 import com.tfg.cryptoosint.dto.TransactionDTO;
 import com.tfg.cryptoosint.dto.WalletNodeDTO;
-//import com.tfg.cryptoosint.entity.AddressEntity;
-//import com.tfg.cryptoosint.entity.TransactionEntity;
-//import com.tfg.cryptoosint.repository.AddressRepository;
-//import com.tfg.cryptoosint.repository.TransactionRepository;
 import com.tfg.cryptoosint.service.BlockClient;
 import com.tfg.cryptoosint.util.JsonParserUtil;
 import org.slf4j.Logger;
@@ -71,11 +67,9 @@ public class TransactionCrawler {
                 );
 
                 String data = api.getAddress(current);
-                long walletAmount = JsonParserUtil.extractWalletAmount(data, current);
-                nodesWithAmount.put(current, walletAmount);
-                if (wallet.equals(current)) {
-                    initialAmount = walletAmount;
-                }
+
+                //REGION DE CODIGO OCULTADA A PETICION DEL DIRECTOR DEL TFG
+                //En el apartado "5.5. Módulo de análisis" del documento podras encontrar el contenido de esta clase.
 
                 List<TransactionDTO> extractedTransfers = JsonParserUtil.extractOutgoingTransfers(data, current);
                 transfers.addAll(extractedTransfers);
@@ -83,14 +77,8 @@ public class TransactionCrawler {
                 List<String> extractedAddresses = JsonParserUtil.extractAddresses(data);
                 int newAddresses = 0;
 
-                for (String nextAddress : extractedAddresses) {
-                    if (!current.equals(nextAddress)
-                            && !visitedAddresses.contains(nextAddress)
-                            && !queue.contains(nextAddress)) {
-                        queue.add(nextAddress);
-                        newAddresses++;
-                    }
-                }
+                //REGION DE CODIGO OCULTADA A PETICION DEL DIRECTOR DEL TFG
+                //En el apartado "5.5. Módulo de análisis" del documento podras encontrar el contenido de esta clase.
 
                 logger.info(
                         "Wallet={} procesada. Direcciones extraidas={}, transferencias salientes={}, nuevas encoladas={}, cola actual={}",
@@ -123,33 +111,9 @@ public class TransactionCrawler {
         }
 
         Map<String, TransactionDTO> aggregatedTransfers = new LinkedHashMap<>();
-        for (TransactionDTO transfer : transfers) {
-            String key = transfer.getFrom() + "->" + transfer.getTo();
-            TransactionDTO existing = aggregatedTransfers.get(key);
 
-            if (existing == null) {
-                aggregatedTransfers.put(
-                        key,
-                        new TransactionDTO(
-                                transfer.getFrom(),
-                                transfer.getTo(),
-                                transfer.getAmount(),
-                                JsonParserUtil.satoshisToBtc(transfer.getAmount()),
-                                transfer.getTxCount(),
-                                transfer.getTxids()
-                        )
-                );
-            } else {
-                long newAmount = existing.getAmount() + transfer.getAmount();
-                existing.setAmount(newAmount);
-                existing.setAmountBtc(JsonParserUtil.satoshisToBtc(newAmount));
-
-                Set<String> mergedTxids = new LinkedHashSet<>(existing.getTxids());
-                mergedTxids.addAll(transfer.getTxids());
-                existing.setTxids(new ArrayList<>(mergedTxids));
-                existing.setTxCount(mergedTxids.size());
-            }
-        }
+        //REGION DE CODIGO OCULTADA A PETICION DEL DIRECTOR DEL TFG
+        //En el apartado "5.5. Módulo de análisis" del documento podras encontrar el contenido de esta clase.
 
         return new GraphDTO(
                 wallet,
